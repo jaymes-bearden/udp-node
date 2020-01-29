@@ -64,14 +64,31 @@ six
   });
 ```
 
+## Constructor
+
+An instance logger is expected to be passed to the creation of a new UdpNode and must have the following methods:
+
+- info
+- debug
+- error
+
+Example:
+```
+const UdpNode = require('udp-node');
+
+const NULL_LOGGER = {
+    info: () => {},
+    debug: () => {},
+    error: () => {},
+}
+
+const six = new UdpNode(NULL_LOGGER);
+
+...
+```
+
 ## Properties
 
-### id
-
-An id is automatically set for each node when the node is constructed.
-This means that it will change each time you do `new UdpNode()`.
-
-An id can optionally be supplied during `.set({id: '...'})`
 
 ## Methods
 
@@ -81,12 +98,22 @@ Initializes **udp-node**.
 Must be called to start udp client.
 
 Params object:
-- id: string, node's id
+- id: \[string\], node's id (optional)
 - name: string, node's name
 - type: string, node's type; used on broadcast filter
 - port: int, default is 3024
 - broadcastAddress: string, default is 255.255.255.255
 - logLevel: calls setLogLevel with passed value
+
+### config()
+
+Returns the current configuration.
+
+- id: string
+- port: int
+- name: string
+- broadcastAddress: string
+- type: \[string\]
 
 ### broadcast(params)
 
@@ -145,14 +172,6 @@ Turns off individual listeners or all listeners for passed message type when ind
 Params:
 - type: string, required; any string that identifies the message type
 - index: int, identifies a specific listener
-
-### setLogLevel(level)
-
-**udp-node** uses [Winston](https://github.com/winstonjs/winston) for logging.
-Please, refer to [logging levels](https://github.com/winstonjs/winston#logging-levels) on the official documentation for more details.
-
-Params:
-- level: string, required; one of: error, warn, info, verbose, debug, silly
 
 ### close(callback)
 
