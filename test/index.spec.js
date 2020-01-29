@@ -91,9 +91,6 @@ describe('udp-node', () => {
         expect(message.from).not.to.be.undefined;
         expect(message.port).to.equal(3025);
         expect(message.type).to.equal('pong');
-
-
-        console.log(message.node);
         expect(message.node).to.eql({
           id: node.config().id,
           port: 3024,
