@@ -1,7 +1,7 @@
-'use strict'
+'use strict';
 
-const NodeDiscovery = require('../index')
-const six = new NodeDiscovery()
+const NodeDiscovery = require('../index');
+const six = new NodeDiscovery();
 six
   .set({
     name: 'Six',
@@ -19,4 +19,4 @@ six
   })
   .on('ehlo', (message) => {
     six.close()
-  })
+  });

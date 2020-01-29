@@ -4,7 +4,7 @@ Find and communicate with network nodes over UDP.
 
 ## About
 
-**udp-node** provides a programatic way of discovering and interacting with other
+**udp-node** provides a programmatic way of discovering and interacting with other
 nodes over UDP. This interaction can be easily achieved using provided methods, 
 like `ping`, `broadcast` and `onNode` and you can also create your custom events
 using the `on` and `send` methods.
@@ -24,8 +24,8 @@ In this example we will send a *broadcast* message to find all nodes in the netw
 These nodes are other instances of **udp-node**.
 
 ```
-const UdpNode = require('udp-node')
-const six = new UdpNode()
+const UdpNode = require('udp-node');
+const six = new UdpNode();
 six
   .set({
     name: 'Six',
@@ -36,7 +36,7 @@ six
     // FOUND NODE
     // message: contains node's name, type and other details set when node was initialized using set()
     // rinfo: contains node's ip address and port
-  })
+  });
 ```
 
 This broadcast message is sent to the default port, 3024.
@@ -49,8 +49,8 @@ Then, you can send a *broadcast* message filtering by _type_.
 Nodes belonging to that _type_ are the only ones who will answer with a *pong*.
 
 ```
-const UdpNode = require('udp-node')
-const six = new UdpNode()
+const UdpNode = require('udp-node');
+const six = new UdpNode();
 six
   .set({
     name: 'Six',
@@ -61,16 +61,17 @@ six
   })
   .onNode((message, rinfo) => {
     // FOUND HUMAN NODE
-  })
+  });
 ```
 
 ## Properties
 
-### guid
+### id
 
-A guid is automatically set for each node when the node is constructed.
+An id is automatically set for each node when the node is constructed.
 This means that it will change each time you do `new UdpNode()`.
 
+An id can optionally be supplied during `.set({id: '...'})`
 
 ## Methods
 
@@ -80,6 +81,7 @@ Initializes **udp-node**.
 Must be called to start udp client.
 
 Params object:
+- id: string, node's id
 - name: string, node's name
 - type: string, node's type; used on broadcast filter
 - port: int, default is 3024

@@ -1,7 +1,7 @@
-'use strict'
+'use strict';
 
-const NodeDiscovery = require('../index')
-const gaius = new NodeDiscovery()
+const NodeDiscovery = require('../index');
+const gaius = new NodeDiscovery();
 gaius
   .set({
     name: 'Gaius',
@@ -16,4 +16,4 @@ gaius
     }, () => {
       gaius.close()
     })
-  })
+  });
