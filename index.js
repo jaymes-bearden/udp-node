@@ -50,6 +50,11 @@ class UdpNode {
       this.isListening = true;
     });
 
+    this.client.on('error', (err) => {
+      this.logger.debug(`[ ${this.toSimpleName()} ]--> server error`,err);
+      this.client.close();
+    });
+
     this.client.on('close', () => {
       this.isListening = false;
       this.logger.debug(`[ ${this.toSimpleName()} ]--> connection closed`);

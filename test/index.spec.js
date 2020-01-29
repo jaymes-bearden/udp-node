@@ -26,7 +26,7 @@ describe('udp-node', () => {
     }
   });
 
-  it('should create a node', (done) => {
+  it('should create a node', () => {
     node = new UdpNode($logger);
     node.set({name: 'test node'});
     expect(node).not.to.be.undefined;
@@ -38,17 +38,17 @@ describe('udp-node', () => {
     expect(typeof node.on).to.equal('function');
     expect(typeof node.off).to.equal('function');
 
-    node.close(done);
+    node.close();
   });
 
-  it('should provide chaining', (done) => {
+  it('should provide chaining', () => {
     node = new UdpNode($logger);
     expect(node.set({name: 'test node, chaining'})).to.equal(node);
     expect(node.ping({address: '0.0.0.0'})).to.equal(node);
     expect(node.broadcast()).to.equal(node);
     expect(node.onNode()).to.equal(node);
 
-    node.close(done);
+    node.close();
   });
 
   it('should return the configuration on new instance', () => {
