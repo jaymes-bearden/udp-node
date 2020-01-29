@@ -39,7 +39,7 @@ class UdpNode {
     this.logger.debug('-- Setting configuration:', config);
 
     this.config.id = config.id || this.config.id;
-    this.config.port = config.port || DEFAULTS.PORT;
+    this.config.port = (config.port === 0 ? 0  : config.port || DEFAULTS.PORT);
     this.config.broadcastAddress = config.broadcastAddress || DEFAULTS.BROADCAST_ADDRESS;
     this.config.name = config.name || null;
 
