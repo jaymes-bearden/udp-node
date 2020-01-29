@@ -6,11 +6,12 @@ const uuid = require('uuid/v4');
 const DEFAULTS = {
   PORT: 3024,
   BROADCAST_ADDRESS: '255.255.255.255',
-  NO_OP: () => {},
+  NO_OP: () => {
+  },
 };
 
 class UdpNode {
-  constructor (logger) {
+  constructor(logger) {
     this.events = {};
     this.config = {
       id: uuid(),
@@ -26,7 +27,7 @@ class UdpNode {
   /**
    * Set configuration and start listening for UDP messages
    */
-  set (config) {
+  set(config) {
     this.logger.debug('-- Setting configuration:', config);
 
     this.config.id = config.id || this.config.id;
@@ -36,8 +37,8 @@ class UdpNode {
 
     this.client.on('listening', () => {
       const address = this.client.address();
-      this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> listening on ${address.address}:${address.port}`);
-      this.client.setBroadcast(true)
+      this.logger.debug(`[ ${this.toSimpleName()} ]--> listening on ${address.address}:${address.port}`);
+      this.client.setBroadcast(true);
     });
 
     this.client.on('message', (message, rinfo) => {
@@ -58,25 +59,25 @@ class UdpNode {
         // custom events
         if (this.isCustomEvent(message.type)) return this.onCustomEvent(message.type, message, rinfo);
       } catch (ex) {
-        this.logger.error(`[ ${this.config.name} (${this.config.type}) ]--> could not parse client message`, ex);
+        this.logger.error(`[ ${this.toSimpleName()} ]--> could not parse client message`, ex);
       }
 
       // invalid event
-      this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> got INVALID message:`, JSON.stringify(message));
+      this.logger.debug(`[ ${this.toSimpleName()} ]--> got INVALID message:`, JSON.stringify(message));
     });
 
     this.client.bind(this.config.port);
 
     // allow chaining
-    return this
+    return this;
   }
 
-  wasSetup () {
-    return (Object.keys(this.config).length > 1)
+  wasSetup() {
+    return (Object.keys(this.config).length > 1);
   }
 
-  isCustomEvent (type) {
-    return (type in this.events)
+  isCustomEvent(type) {
+    return (type in this.events);
   }
 
   /**
@@ -86,12 +87,12 @@ class UdpNode {
    * @param  {object} message
    * @param  {object} rinfo
    */
-  onCustomEvent (type, message, rinfo) {
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> got ${type}:`, JSON.stringify(message));
+  onCustomEvent(type, message, rinfo) {
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> got ${type}:`, JSON.stringify(message));
 
     this.events[type].map((callback) => {
-      if (typeof callback === 'function') callback(message, rinfo)
-    })
+      if (typeof callback === 'function') callback(message, rinfo);
+    });
   }
 
   /**
@@ -103,7 +104,7 @@ class UdpNode {
    * @param {object:} params {filter, port, address, data}
    * @return {object} pointer to this instance, allows chaining
    */
-  broadcast (params) {
+  broadcast(params) {
     if (!this.wasSetup()) throw new Error('Current node was not set up. Set it up using set({...}) before sending messages.');
 
     let filter, port, address, data;
@@ -111,9 +112,9 @@ class UdpNode {
       filter = params.filter;
       port = params.port;
       address = params.address;
-      data = params.data
+      data = params.data;
     }
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> looking for nodes:`, filter || 'ALL');
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> looking for nodes:`, filter || 'ALL');
 
     const message = {
       type: 'broadcast',
@@ -127,7 +128,7 @@ class UdpNode {
     this.send(message);
 
     // allow chaining
-    return this
+    return this;
   }
 
   /**
@@ -138,12 +139,12 @@ class UdpNode {
    * @param {object} {address, port, data}
    * @return {object} pointer to this instance, allows chaining
    */
-  ping ({address, port, data = null}) {
+  ping({address, port, data = null}) {
     if (!this.wasSetup()) throw new Error('Current node was not set up. Set it up using set({...}) before sending messages.');
     if (!address) throw new Error('Required params for ping method: address');
     port = port || DEFAULTS.PORT;
 
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> sending PING to ${address}:${port}`);
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> sending PING to ${address}:${port}`);
 
     const message = {
       type: 'ping',
@@ -156,7 +157,7 @@ class UdpNode {
     this.send(message);
 
     // allow chaining
-    return this
+    return this;
   }
 
   /**
@@ -167,7 +168,7 @@ class UdpNode {
    * @param {object} message
    * @param {object} rinfo
    */
-  pong (message, rinfo) {
+  pong(message, rinfo) {
     const pongMessage = {
       type: 'pong',
       port: rinfo.port,
@@ -175,7 +176,7 @@ class UdpNode {
       node: this.config
     };
 
-    this.send(pongMessage)
+    this.send(pongMessage);
   }
 
   /**
@@ -185,7 +186,7 @@ class UdpNode {
    * @param  {Function} [callback]
    * @return {object} pointer to this instance, allows chaining
    */
-  send (message, callback) {
+  send(message, callback) {
     // handle errors
     if (!this.wasSetup()) throw new Error('Current node was not set up. Set it up using set({...}) before sending messages.');
     if (!message.type) throw new Error('Missing property "message.type" when calling send(message, callback).');
@@ -199,12 +200,12 @@ class UdpNode {
 
     const messageString = JSON.stringify(message);
     this.client.send(messageString, 0, messageString.length, message.port, message.address, (err) => {
-      this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> ${message.type} SENT`);
-      if (typeof callback === 'function') callback(err)
+      this.logger.debug(`[ ${this.toSimpleName()} ]--> ${message.type} SENT`);
+      if (typeof callback === 'function') callback(err);
     });
 
     // allow chaining
-    return this
+    return this;
   }
 
   /**
@@ -216,7 +217,7 @@ class UdpNode {
    * @param  {object} message
    * @return {Boolean}
    */
-  isNodeOfInterest (message) {
+  isNodeOfInterest(message) {
     // ignore our own messages
     if (message.from === this.config.id) return false;
 
@@ -228,7 +229,7 @@ class UdpNode {
 
     // we have a node filter
     // is a node of interest?
-    return (message.filter.indexOf(this.config.type) !== -1)
+    return (message.filter.indexOf(this.config.type) !== -1);
   }
 
   /**
@@ -237,11 +238,11 @@ class UdpNode {
    * @param  {Function} callback
    * @returns {object} this
    */
-  onNode (callback) {
+  onNode(callback) {
     this.onNodeCallback = callback;
 
     // allow chaining
-    return this
+    return this;
   }
 
   /**
@@ -251,13 +252,13 @@ class UdpNode {
    * @param  {object} message
    * @param  {object} rinfo
    */
-  onPing (message, rinfo) {
+  onPing(message, rinfo) {
     // ignore nodes we're not interest into
     if (!this.isNodeOfInterest(message)) return;
 
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> got PING:`, JSON.stringify(message));
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> got PING:`, JSON.stringify(message));
     this.onNodeCallback(message, rinfo);
-    this.pong(message, rinfo)
+    this.pong(message, rinfo);
   }
 
   /**
@@ -267,13 +268,13 @@ class UdpNode {
    * @param  {object} message
    * @param  {object} rinfo
    */
-  onBroadcast (message, rinfo) {
+  onBroadcast(message, rinfo) {
     // ignore nodes we're not interest into
     if (!this.isNodeOfInterest(message)) return;
 
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> got BROADCAST:`, JSON.stringify(message));
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> got BROADCAST:`, JSON.stringify(message));
     this.onNodeCallback(message, rinfo);
-    this.pong(message, rinfo)
+    this.pong(message, rinfo);
   }
 
   /**
@@ -284,9 +285,9 @@ class UdpNode {
    * @param  {object} message
    * @param  {object} rinfo
    */
-  onPong (message, rinfo) {
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> got PONG:`, JSON.stringify(message));
-    this.onNodeCallback(message, rinfo)
+  onPong(message, rinfo) {
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> got PONG:`, JSON.stringify(message));
+    this.onNodeCallback(message, rinfo);
   }
 
   /**
@@ -298,7 +299,7 @@ class UdpNode {
    * @param  {Function} callback
    * @returns {object} this
    */
-  on (type, callback) {
+  on(type, callback) {
     // validate params
     if (!type) throw new Error('Missing param "type" when calling on(type, callback).');
     if (!callback) throw new Error('Missing param "callback" when calling on(type, callback).');
@@ -306,7 +307,7 @@ class UdpNode {
 
     if (!this.events[type]) this.events[type] = [];
     this.events[type].push(callback);
-    return this
+    return this;
   }
 
   /**
@@ -316,18 +317,18 @@ class UdpNode {
    * @param  {string} type
    * @param  {int} index
    */
-  off (type, index) {
+  off(type, index) {
     // validate params
     if (!type) throw new Error('Missing param "type" when calling off(type, index).');
 
     // completely turn off this event
     if (index === undefined) {
       delete this.events[type];
-      return
+      return;
     }
 
     // turn off only specified listener
-    this.events[type].splice(index, 1)
+    this.events[type].splice(index, 1);
   }
 
   /**
@@ -335,64 +336,68 @@ class UdpNode {
    *
    * @param  {Function} [callback]
    */
-  close (callback) {
+  close(callback) {
     if (this.isClosed) {
       return;
     }
 
     this.isClosed = true;
-    this.logger.debug(`[ ${this.config.name} (${this.config.type}) ]--> CLOSE`);
-    this.client.close(callback)
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> CLOSE`);
+    this.client.close(callback);
+  }
+
+  toSimpleName() {
+    return `${this.config.name}${this.config.type ? ` (${this.config.type})` : ''}`;
   }
 }
 
 // Shield UdpNode behind a facade.
 // This hides methods and properties that should not be public.
-module.exports = function UdpNodeFacade (logger) {
+module.exports = function UdpNodeFacade(logger) {
   const node = new UdpNode(logger);
 
   this.set = (config) => {
     node.set(config);
-    return this
+    return this;
   };
 
   this.config = () => {
-    return {...node.config}
+    return {...node.config};
   };
 
   this.broadcast = (params) => {
     node.broadcast(params);
-    return this
+    return this;
   };
 
   this.ping = (params) => {
     node.ping(params);
-    return this
+    return this;
   };
 
   this.send = (message, callback) => {
     node.send(message, callback);
-    return this
+    return this;
   };
 
   this.onNode = (callback) => {
     node.onNode(callback);
-    return this
+    return this;
   };
 
   this.on = (type, callback) => {
-    return node.on(type, callback)
+    return node.on(type, callback);
   };
 
   this.off = (type, index) => {
-    node.off(type, index)
+    node.off(type, index);
   };
 
   this.close = (callback) => {
-    node.close(callback)
+    node.close(callback);
   };
 
   this.getEvents = () => {
-    return node.events
-  }
+    return node.events;
+  };
 };
