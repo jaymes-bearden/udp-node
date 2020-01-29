@@ -6,7 +6,15 @@ const uuid = require('uuid/v4');
 const DEFAULTS = {
   PORT: 3024,
   BROADCAST_ADDRESS: '255.255.255.255',
-  NO_OP: () => {
+
+  /**
+   * This callback type is called `requestCallback` and is displayed as a global symbol.
+   *
+   * @callback NodeCallback
+   * @param {object} msg
+   * @param {object} rinfo
+   */
+  NODE_CALLBACK_NO_OP: (msg, rinfo) => {
   },
 };
 
@@ -18,10 +26,10 @@ class UdpNode {
     };
 
     this.logger = logger;
-    this.onNodeCallback = DEFAULTS.NO_OP;
+    this.onNodeCallback = DEFAULTS.NODE_CALLBACK_NO_OP;
 
     this.client = dgram.createSocket('udp4');
-    this.isClosed = false;
+    this.isListening = false;
   }
 
   /**
@@ -39,6 +47,12 @@ class UdpNode {
       const address = this.client.address();
       this.logger.debug(`[ ${this.toSimpleName()} ]--> listening on ${address.address}:${address.port}`);
       this.client.setBroadcast(true);
+      this.isListening = true;
+    });
+
+    this.client.on('close', () => {
+      this.isListening = false;
+      this.logger.debug(`[ ${this.toSimpleName()} ]--> connection closed`);
     });
 
     this.client.on('message', (message, rinfo) => {
@@ -68,7 +82,6 @@ class UdpNode {
 
     this.client.bind(this.config.port);
 
-    // allow chaining
     return this;
   }
 
@@ -101,7 +114,7 @@ class UdpNode {
    * is not specified.
    * Nodes automatically respond to broadcast messages with a pong.
    *
-   * @param {object:} params {filter, port, address, data}
+   * @param {object} params {filter, port, address, data}
    * @return {object} pointer to this instance, allows chaining
    */
   broadcast(params) {
@@ -114,7 +127,7 @@ class UdpNode {
       address = params.address;
       data = params.data;
     }
-    this.logger.debug(`[ ${this.toSimpleName()} ]--> looking for nodes:`, filter || 'ALL');
+    this.logger.debug(`[ ${this.toSimpleName()} ]--> looking for node types: ${filter || 'ALL'}`);
 
     const message = {
       type: 'broadcast',
@@ -127,7 +140,6 @@ class UdpNode {
 
     this.send(message);
 
-    // allow chaining
     return this;
   }
 
@@ -156,7 +168,6 @@ class UdpNode {
 
     this.send(message);
 
-    // allow chaining
     return this;
   }
 
@@ -204,7 +215,6 @@ class UdpNode {
       if (typeof callback === 'function') callback(err);
     });
 
-    // allow chaining
     return this;
   }
 
@@ -235,13 +245,12 @@ class UdpNode {
   /**
    * Called each time a new node is found.
    *
-   * @param  {Function} callback
+   * @param  {NodeCallback} callback to handle detected node responses
    * @returns {object} this
    */
   onNode(callback) {
     this.onNodeCallback = callback;
 
-    // allow chaining
     return this;
   }
 
@@ -337,12 +346,10 @@ class UdpNode {
    * @param  {Function} [callback]
    */
   close(callback) {
-    if (this.isClosed) {
+    if (!this.isListening) {
       return;
     }
 
-    this.isClosed = true;
-    this.logger.debug(`[ ${this.toSimpleName()} ]--> CLOSE`);
     this.client.close(callback);
   }
 
